@@ -6,9 +6,9 @@
 
 - Główne okno zawiera dwa pola tekstowe do wprowadzania rozmiaru planszy (n na m pól), planszę o wymiarach n na m pól (np. siatka przycisków), pole tekstowe na wprowadzenie liczby min na planszy, liczbę oznaczonych pól, liczbę min na planszy, oraz przycisk rozpoczęcia nowej gry.
 
-- Wprowadzenie mniejszego rozmiaru planszy niz 2x2 lub większego niz 15x15 , liczby min mniejszej niż O lub większej niz m • n powoduje wyświetlenie komunikatu o błędzie. Nie można rozpocząć gry dopóki te parametry nie są poprawne. Walidacja danych powinna wykorzystywać mechanizm wyjqtków.
+- Wprowadzenie mniejszego rozmiaru planszy niz 2x2 lub większego niz 15x15 , liczby min mniejszej niż 0 lub większej niz m • n powoduje wyświetlenie komunikatu o błędzie. Nie można rozpocząć gry dopóki te parametry nie są poprawne. Walidacja danych powinna wykorzystywać mechanizm wyjątków.
 
-- Na poczqtku gry na losowych polach umieszczane jest tyle min ile wskazano w polu tekstowym (każde możliwe rozłożenie min jest równie prawdopodobne) .
+- Na początku gry na losowych polach umieszczane jest tyle min ile wskazano w polu tekstowym (każde możliwe rozłożenie min jest równie prawdopodobne) .
 
 - Po kliknięciu lewym przyciskiem myszy na pole:
 
@@ -18,7 +18,7 @@
 
   * W przeciwnym razie sąsiednie pola są sprawdzane tak jakby zostały kliknięte a pole dezaktywuje się .
 
-- Po kliknięciu prawym przyciskiem pole może zostać oznaczone "tu jest mina", po ponownym kliknięciu oznaczenie zmienia się na "tu moze bye mina", a po kolejnym kliknięciu oznaczenie znika.
+- Po kliknięciu prawym przyciskiem pole może zostać oznaczone "tu jest mina", po ponownym kliknięciu oznaczenie zmienia się na "tu moze być mina", a po kolejnym kliknięciu oznaczenie znika.
 
 - Gra kończy się po kliknięciu wszystkich pól bez min, lub oznaczeniu "tu jest mina" wszystkich pól z minami (i żadnych innych).
 
@@ -36,7 +36,7 @@
 
 5. Oznaczenie pola jako "tu jest mina" - licznik oznaczonych pól powinien wzrosnąć o 1,
 
-6. Oznaczenie innego pola jako "tu moze bye mina",
+6. Oznaczenie innego pola jako "tu moze być mina",
 
 7. Oznaczenie pola, odznaczenie go, ponowne oznaczenie i ponowne odznaczenie
 
