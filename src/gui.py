@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox
-import src.saper.temporary_name as temporary_name
+import temporary_name
 
 
 class SaperGame:
@@ -20,6 +20,7 @@ class SaperGame:
 
         # Ustawienia okna ustawień planszy:
         get_data = tk.Tk()
+        get_data.iconphoto(True, tk.PhotoImage(file='./graphics/saper_window_icon.png'))
         get_data.geometry("400x300")
         get_data.wm_title("Saper")
         get_data.eval('tk::PlaceWindow . center')
