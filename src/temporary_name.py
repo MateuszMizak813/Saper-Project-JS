@@ -1,3 +1,5 @@
+import random
+
 
 class Error(Exception):
     """ Podstawa pod inne własne klasy wyjątków"""
@@ -34,3 +36,10 @@ def check_settings(height, width, mines):
         raise WrongTypeOfArguments("ilość min", mines)
     elif int(mines) < 0 or int(mines) > int(width)*int(height):
         raise ArgumentNotInRange("ilość min", mines)
+
+
+def get_minefield(h, w, m):
+    """ Funkcja służąca do losowania min na planszy """
+    random_positions = random.sample(range(h*w), k=m)
+    mine_field = [[True if j*h+i in random_positions else False for i in range(w)]for j in range(h)]
+    return mine_field

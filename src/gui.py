@@ -5,9 +5,8 @@ import temporary_name
 
 class SaperGame:
     def __init__(self):
-        self.height = 0
-        self.width = 0
         self.mines = 0
+        self.mine_field = []
 
     def start_game(self):
         pass
@@ -23,7 +22,6 @@ class SaperGame:
         get_data.iconphoto(True, tk.PhotoImage(file='./graphics/saper_window_icon.png'))
         get_data.geometry("400x300")
         get_data.wm_title("Saper")
-        get_data.eval('tk::PlaceWindow . center')
         get_data.grid_columnconfigure(0, weight=1)
         get_data.grid_columnconfigure(5, weight=1)
         get_data.grid_rowconfigure(0, weight=1)
@@ -56,6 +54,7 @@ class SaperGame:
         button.grid(row=5, column=2, columnspan=3)
 
         # Główna pętla
+        get_data.eval('tk::PlaceWindow . center')
         get_data.mainloop()
 
     def submit_data(self, height, width, mines, window):
@@ -77,41 +76,74 @@ class SaperGame:
         else:
             print("Ustawienia poprawne")  # Chwilowe
             window.destroy()
+            self.mines = int(m)
             self.prepare_minefield(int(h), int(w), int(m))
 
     def prepare_minefield(self, height, width, mines):  # Funkcja do zmiany
         root = tk.Tk()
         root.wm_title("Saper")
-        for i in range(height):
-            for j in range(width):
-                button = Field(i, j, root, padx=20, pady=15, relief="raised", borderwidth=3, state="disabled")
+        mine_field_list = temporary_name.get_minefield(height, width, mines)
+        # Do zmiany
+        get_button_with_mine = lambda row, column: FieldWithMine(row, column, root, relief="raised", borderwidth=3,
+                                                                 state="disabled", width=4, height=2, font=13)
+        # Do zmiany
+        get_button_without_mine = lambda row, column: Fields(row, column, root, relief="raised", borderwidth=3,
+                                                             state="disabled", width=4, height=2, font=13)
+        self.mine_field = [[get_button_with_mine(j, i) if mine_field_list[j][i] else get_button_without_mine(j, i)
+                            for i in range(width)] for j in range(height)]
+        print(self.mine_field)
         root.eval('tk::PlaceWindow . center')
         root.mainloop()
 
 
-# Nadpisana klasa przycisku (nie dokończone)
-class Field(tk.Button):
+class Fields(tk.Button):
+    """ Podstawowa klasa pola planszy"""
     def __init__(self, x, y, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.grid(row=x, column=y)
-        self.bind("<Button-1>", left_click)
-        self.bind("<Button-2>", right_click)
+        self.state = 0
         self.bind("<Button-3>", right_click)
+        self.bind("<Button-1>", left_click)
 
 
-# funkcja lewego przycisku na mapie (do zmian)
+class FieldWithMine(Fields):
+    """ Klasa pola na którym znajduje się mina"""
+    def __init__(self, x, y, *args, **kwargs):
+        super().__init__(x, y, *args, **kwargs)
+        self.bind("<Button-1>", game_over)
+        self.window = args[0]
+
+
+# Do zmiany - funkcja chwilowa
 def left_click(event):
     tmp_button = event.widget
     tmp_button['relief'] = 'sunken'
     tmp_button['state'] = 'disabled'
+
     tmp_button.unbind("<Button-1>")
     tmp_button.unbind("<Button-2>")
     tmp_button.unbind("<Button-3>")
     tmp_button["bg"] = "#cccccc"
 
 
+# Wersja bazowa - Wymagane poprawki wizualne i blokada liczby oznaczeń wykrzyknikiem
 def right_click(event):
-    event.widget.configure(bg="red")
+    """ Funkcja prawego przycisku myszy, odpowiedzialna za oznaczanie pól 'tu jest bomba', 'tu może być bomba'"""
+    tmp_button = event.widget
+    if tmp_button.state == 0:
+        tmp_button.configure(text="!")
+        tmp_button.state += 1
+    elif tmp_button.state == 1:
+        tmp_button.configure(text="?")
+        tmp_button.state += 1
+    elif tmp_button.state == 2:
+        tmp_button.configure(text=" ")
+        tmp_button.state = 0
 
 
-
+# Nie dokończone - brak możliwości restartu gry oraz brak komunikatu
+def game_over(event):
+    """ Funkcja kończąca grę w momencie kliknięcia na bombe """
+    tmp_button = event.widget
+    print("Game Over")
+    tmp_button.window.destroy()
