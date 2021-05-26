@@ -1,5 +1,5 @@
 import random
-
+import gui
 
 class Error(Exception):
     """ Podstawa pod inne własne klasy wyjątków"""
@@ -43,3 +43,12 @@ def get_minefield(h, w, m):
     random_positions = random.sample(range(h*w), k=m)
     mine_field = [[True if j*h+i in random_positions else False for i in range(w)]for j in range(h)]
     return mine_field
+
+
+def check_surroundings(row, column, mine_field):
+    """ Funkcja zwracająca liczbę min w okół pola """
+    near_field_list = [(j, i) for j in [column - 1, column, column + 1] if 0 <= j < len(mine_field[0])
+                       for i in [row - 1, row, row + 1] if 0 <= i < len(mine_field)]
+
+    mines_list = [isinstance(mine_field[i][j], gui.SaperGame.FieldWithMine) for j, i in near_field_list]
+    return mines_list.count(True), near_field_list
