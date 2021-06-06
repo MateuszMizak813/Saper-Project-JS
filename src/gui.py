@@ -3,11 +3,9 @@ Plik zawierający główną klasę gry, jest ona głównie odpowiedzialna za int
 oraz funkcjonalność tego interfejsu
 """
 
-
 import tkinter as tk
 import tkinter.messagebox
-import temporary_name
-import time
+import functionality
 
 
 class SaperGame:
@@ -17,17 +15,16 @@ class SaperGame:
         self.event_list = []
         self.flagged_fields = 0
         self.flagged_mines = 0
+        self.game_status = 0
 
     def start_game(self):
-        pass
-
-    def get_size_and_mines(self):
         """
         Metoda get_size_and_mines tworzy okno odpowiedzialne za sczytanie wielkości
         planszy oraz ilości min wprowadzonych przez użytkownika
         """
 
         # Ustawienia okna ustawień planszy:
+        self.game_status = 0
         get_data = tk.Tk()
         get_data.iconphoto(True, tk.PhotoImage(file='./graphics/saper_window_icon.png'))
         get_data.geometry("400x300")
@@ -76,11 +73,11 @@ class SaperGame:
 
         # Sprawdzanie wprowadzonych danych, w wypadku sukcesu przejście do głównego
         try:
-            temporary_name.check_settings(h, w, m)
-        except temporary_name.WrongTypeOfArguments as wtoa:
+            functionality.check_settings(h, w, m)
+        except functionality.WrongTypeOfArguments as wtoa:
             error_text = "Podana " + wtoa.argument_name + " (" + wtoa.content + ") musi być liczbą całkowitą"
             tkinter.messagebox.showerror(title="Error", message=error_text)
-        except temporary_name.ArgumentNotInRange as anir:
+        except functionality.ArgumentNotInRange as anir:
             if anir.argument_name == "ilość min":
                 error_text = "Podana " + anir.argument_name + " (" + anir.value + ") musi być z przedziału od 0 do " + str(int(h)*int(w))
             else:
@@ -100,11 +97,17 @@ class SaperGame:
         root.bind("<Key>", self.highlight_mines)
 
         # Funkcja losująca miejsca z minami
-        mine_field_list = temporary_name.get_minefield(height, width, mines)
+        mine_field_list = functionality.get_minefield(height, width, mines)
 
         # Zapełnianie planszy obiektami klasy 'Fields' i 'FieldWithMine'
         self.mine_field = [[self.get_button_with_mine(root, j, i) if mine_field_list[j][i]
                             else self.get_button_without_mine(root, j, i) for i in range(width)] for j in range(height)]
+
+        self.label_mines = tk.Label(root, text="Pozostało min: "+str(self.mines - self.flagged_fields), font=("Calibri", 18))
+        self.label_mines.grid(row=height+1, column=0, columnspan=int(width), pady=5)
+
+        reset_button = tk.Button(root, text="Reset", command=lambda: self.reset_game(root), width=20)
+        reset_button.grid(row=height+2, column=0, columnspan=int(width), pady=5)
 
         root.eval('tk::PlaceWindow . center')
 
@@ -118,7 +121,7 @@ class SaperGame:
 
     def get_button_with_mine(self, root, row, column, ):
         """ Funkcja zwracająca pojedynczy obiekt klasy 'FieldWithMines' z odpowiednimi ustawieniami"""
-        return self.FieldWithMine(lambda event: self.right_click(event), row, column, root, relief="raised",
+        return self.FieldWithMine(lambda event: self.game_over(event), lambda event: self.right_click(event), row, column, root, relief="raised",
                                   borderwidth=3, width=4, height=2, font=13)
 
     class Fields(tk.Button):
@@ -134,12 +137,11 @@ class SaperGame:
 
     class FieldWithMine(Fields):
         """ Klasa pola na którym znajduje się mina"""
-        def __init__(self, fun2, x, y, *args, **kwargs):
+        def __init__(self, fun, fun2, x, y, *args, **kwargs):
             super().__init__(None, fun2, x, y, *args, **kwargs)
-            self.bind("<Button-1>", game_over)
+            self.bind("<Button-1>", fun)
             self.window = args[0]
 
-    # Do zmiany - funkcja chwilowa
     def left_click(self, event):
         """ Funkcja Lewego przycisku myszy na polach bez min"""
         if isinstance(event, tk.Event):
@@ -153,9 +155,14 @@ class SaperGame:
         tmp_button.unbind("<Button-1>")
         tmp_button.unbind("<Button-3>")
         tmp_button["bg"] = "#cccccc"
+        if tmp_button["text"] == "!":
+            self.flagged_fields -= 1
+            self.label_mines["text"] = "Pozostało min: " + str(self.mines - self.flagged_fields)
+
+        tmp_button["text"] = " "
 
         # zliczanie min w okolicy
-        amount, field_list = temporary_name.check_surroundings(tmp_button.row, tmp_button.column, self.mine_field)
+        amount, field_list = functionality.check_surroundings(tmp_button.row, tmp_button.column, self.mine_field)
         if amount > 0:
             tmp_button["text"] = amount
         else:
@@ -164,7 +171,7 @@ class SaperGame:
                     self.left_click(self.mine_field[i][j])
 
     def highlight_mines(self, event):
-        """ Funkcja podświetlająca zaznaczająca gdzie znajdują się miny """
+        """ Funkcja zaznaczająca gdzie znajdują się miny po wpisaniu x,y,z,z,y"""
         self.event_list.append(event.char)
         if len(self.event_list) > 5:
             self.event_list.pop(0)
@@ -178,22 +185,29 @@ class SaperGame:
         """ Funkcja prawego przycisku myszy, odpowiedzialna za oznaczanie pól 'tu jest bomba', 'tu może być bomba'"""
         tmp_button = event.widget
         if tmp_button.state == 0:
+            # Sprawdzanie czy gracz nie zaznaczył więcej pól niż jest min
             if self.flagged_fields < self.mines:
                 tmp_button.configure(text="!")
                 tmp_button.state += 1
                 self.flagged_fields += 1
+                self.label_mines["text"] = "Pozostało min: "+str(self.mines - self.flagged_fields)
                 if isinstance(tmp_button, SaperGame.FieldWithMine):
                     self.flagged_mines += 1
                     if self.flagged_mines == self.mines:
-                        # Do zmian: wygrana
-                        print("You Win!")
-                        time.sleep(1)
-                        tmp_button.window.destroy()
+                        # Wygrana - wyłączenie planszy
+                        self.game_status = 1
+                        tkinter.messagebox.showinfo(title="Saper", message="Gratulacje, wygrałeś! :D")
+                        for row in self.mine_field:
+                            for tmp_button in row:
+                                tmp_button.unbind("<Button-1>")
+                                tmp_button.unbind("<Button-3>")
+                                tmp_button['state'] = 'disabled'
             else:
                 tmp_button.configure(text="?")
                 tmp_button.state += 2
         elif tmp_button.state == 1:
             self.flagged_fields -= 1
+            self.label_mines["text"] = "Pozostało min: " + str(self.mines - self.flagged_fields)
             if isinstance(tmp_button, SaperGame.FieldWithMine):
                 self.flagged_mines -= 1
             tmp_button.configure(text="?")
@@ -202,15 +216,20 @@ class SaperGame:
             tmp_button.configure(text=" ")
             tmp_button.state = 0
 
+    def game_over(self, event):
+        """ Funkcja kończąca grę w momencie kliknięcia na bombe """
+        tmp_button = event.widget
+        self.game_status = 2
+        tmp_button["bg"] = "red"
+        for row in self.mine_field:
+            for button in row:
+                if isinstance(button, SaperGame.FieldWithMine):
+                    button["bg"] = "red"
+                button.unbind("<Button-1>")
+                button.unbind("<Button-3>")
+                button['state'] = 'disabled'
+        tkinter.messagebox.showerror(title="Saper", message="Trafiłeś na mine! :(")
 
-# Nie dokończone - brak możliwości restartu gry oraz brak komunikatu
-def game_over(event):
-    """ Funkcja kończąca grę w momencie kliknięcia na bombe """
-    tmp_button = event.widget
-    print("Game Over")
-    tmp_button["bg"] = "red"
-    time.sleep(1)
-    tmp_button.window.destroy()
-
-
-
+    def reset_game(self, window):
+        window.destroy()
+        self.start_game()

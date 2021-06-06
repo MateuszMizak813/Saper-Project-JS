@@ -1,6 +1,7 @@
 import random
 import gui
 
+
 class Error(Exception):
     """ Podstawa pod inne własne klasy wyjątków"""
     pass

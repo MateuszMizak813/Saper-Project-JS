@@ -1,4 +1,6 @@
+""" Plik służący jako główne wywołanie gry """
+
 from gui import SaperGame
 
-c = SaperGame()
-c.get_size_and_mines()
+Saper = SaperGame()
+Saper.start_game()
