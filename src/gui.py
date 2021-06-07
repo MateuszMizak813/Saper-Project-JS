@@ -23,7 +23,6 @@ class SaperGame:
         """
 
         # Ustawienia okna ustawień planszy:
-        self.game_status = 0
         get_data = tk.Tk()
         get_data.iconphoto(True, tk.PhotoImage(file='./graphics/saper_window_icon.png'))
         get_data.geometry("400x300")
