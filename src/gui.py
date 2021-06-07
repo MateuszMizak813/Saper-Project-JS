@@ -15,7 +15,6 @@ class SaperGame:
         self.event_list = []
         self.flagged_fields = 0
         self.flagged_mines = 0
-        self.game_status = 0
 
     def start_game(self):
         """
@@ -195,7 +194,6 @@ class SaperGame:
                     self.flagged_mines += 1
                     if self.flagged_mines == self.mines:
                         # Wygrana - wyłączenie planszy
-                        self.game_status = 1
                         tkinter.messagebox.showinfo(title="Saper", message="Gratulacje, wygrałeś! :D")
                         for row in self.mine_field:
                             for tmp_button in row:
@@ -219,7 +217,6 @@ class SaperGame:
     def game_over(self, event):
         """ Funkcja kończąca grę w momencie kliknięcia na bombe """
         tmp_button = event.widget
-        self.game_status = 2
         tmp_button["bg"] = "red"
         for row in self.mine_field:
             for button in row:
